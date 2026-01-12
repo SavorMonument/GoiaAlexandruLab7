@@ -1,10 +1,12 @@
+using GoiaAlexandruLab7.Models;
+
 namespace GoiaAlexandruLab7;
 
 public partial class ListPage : ContentPage
 {
 	public ListPage()
 	{
-		InitializeComponent();
+        InitializeComponent();
 	}
 	async void OnSaveButtonClicked(object sender, EventArgs e)
 	{
@@ -19,5 +21,38 @@ public partial class ListPage : ContentPage
         var slist = (Models.ShopList) BindingContext;
         await App.Database.DeleteShopListAsync(slist);
         await Navigation.PopAsync();
+    }
+	async void OnChooseButtonClicked(object sender, EventArgs e)
+	{
+
+		await Navigation.PushAsync(new ProductPage((ShopList)
+this.BindingContext)
+		{
+			BindingContext = new Product()
+		});
 	}
+    protected override async void OnAppearing()
+	{
+		base.OnAppearing();
+
+		var shopl = (ShopList)BindingContext;
+
+		listView.ItemsSource = await App.Database.GetListProductsAsync(shopl.ID);
+	}
+    protected async void OnRemoveItemFromList(object sender, EventArgs e)
+	{
+		var button = (Button)sender;
+        Product p = (Product)button.BindingContext;
+
+        var shopl = (ShopList)BindingContext;
+
+        var lp = new ListProduct()
+        {
+            ShopListID = shopl.ID,
+            ProductID = p.ID
+        };
+        await App.Database.RemoveListProductAsync(lp);
+		listView.ItemsSource = await App.Database.GetListProductsAsync(shopl.ID);
+    }
+
 }
